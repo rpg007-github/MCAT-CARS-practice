@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCAT CARS Timed Practice Arena</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,500;0,700;0,900;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e;
+  --paper: #f5f0e8;
+  --accent: #c0392b;
+  --gold: #d4a847;
+  --gold-light: #f0d78c;
+  --teal: #1a7a6d;
+  --teal-light: #2ec4b6;
+  --muted: #7a7567;
+  --light-border: #d9d2c5;
+  --card-bg: #faf7f2;
+  --correct: #27ae60;
+  --incorrect: #c0392b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* HERO */
+.hero {
+  min-height: 40vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 50px 24px 30px;
+  background: linear-gradient(180deg, #1a1a2e 0%, #2d2d4a 70%, var(--paper) 100%);
+  color: var(--paper);
+  position: relative;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--paper));
+}
+.hero-label {
+  font-weight: 600; font-size: 0.75rem;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 18px;
+}
+.hero h1 {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: clamp(2.4rem, 5.5vw, 4rem);
+  line-height: 1.1; margin-bottom: 14px;
+}
+.hero h1 span { color: var(--gold); }
+.hero p { font-size: 1.1rem; max-width: 560px; color: #b8b4a8; margin-bottom: 20px; }
+
+/* STICKY TIMER BAR */
+.timer-bar {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--ink);
+  color: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 24px;
+  border-bottom: 3px solid var(--gold);
+  flex-wrap: wrap;
+}
+.timer-clock {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 1.8rem;
+  color: var(--gold);
+  min-width: 80px;
+  text-align: center;
+}
+.timer-clock.danger { color: var(--accent); animation: pulse 1s infinite; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.timer-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 8px 20px;
+  border: 2px solid var(--gold);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.timer-btn:hover { background: var(--gold); color: var(--ink); }
+.timer-btn.active { background: var(--gold); color: var(--ink); }
+.passage-indicator {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #b8b4a8;
+  letter-spacing: 1px;
+}
+.passage-nav-group {
+  display: flex; gap: 4px;
+}
+.passage-pip {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid #444;
+  background: transparent;
+  color: #888;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.passage-pip.active { border-color: var(--gold); color: var(--gold); background: rgba(212,168,71,0.15); }
+.passage-pip.complete { border-color: var(--correct); color: var(--correct); background: rgba(39,174,96,0.15); }
+
+/* MAIN CONTENT */
+.main { max-width: 880px; margin: 0 auto; padding: 30px 24px 100px; }
+
+.passage-section { display: none; animation: fadeUp 0.35s ease; }
+.passage-section.active { display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* PASSAGE CARDS */
+.passage-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+.passage-num {
+  font-family: 'Fraunces', serif;
+  font-weight: 900;
+  font-size: 2.8rem;
+  color: var(--light-border);
+  line-height: 1;
+}
+.passage-meta .pm-label {
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--teal);
+}
+.passage-meta .pm-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 700; font-size: 1.35rem;
+  color: var(--ink);
+}
+.passage-meta .pm-topic {
+  font-size: 0.82rem; color: var(--muted); margin-top: 2px;
+}
+
+.passage-block {
+  background: #fff;
+  border-left: 4px solid var(--gold);
+  padding: 22px 26px;
+  border-radius: 0 10px 10px 0;
+  margin: 20px 0 28px;
+  font-size: 0.93rem;
+  line-height: 1.85;
+  color: #333;
+}
+
+/* QUESTIONS */
+.question-block {
+  background: var(--card-bg);
+  border: 1px solid var(--light-border);
+  border-radius: 12px;
+  padding: 24px 26px;
+  margin-bottom: 18px;
+}
+.q-num {
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.q-stem {
+  font-family: 'Fraunces', serif;
+  font-weight: 600; font-size: 1.05rem;
+  margin-bottom: 14px;
+}
+
+.option-btn {
+  display: block; width: 100%; text-align: left;
+  padding: 13px 16px; margin-bottom: 7px;
+  border: 2px solid var(--light-border);
+  border-radius: 9px; background: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem; color: var(--ink);
+  cursor: pointer; transition: all 0.2s;
+}
+.option-btn:hover:not(.locked) { border-color: var(--ink); background: #faf7f2; }
+.option-btn.selected { border-color: var(--teal); background: #e8f8f5; font-weight: 600; }
+.option-btn.correct { border-color: var(--correct); background: #e8f8f0; }
+.option-btn.incorrect { border-color: var(--incorrect); background: #fde8e8; }
+.option-btn.locked { cursor: default; opacity: 0.65; }
+.option-btn.locked.correct { opacity: 1; }
+
+.feedback-box {
+  margin-top: 14px; padding: 16px 20px;
+  border-radius: 10px; font-size: 0.9rem;
+  line-height: 1.65; display: none;
+}
+.feedback-box.show { display: block; animation: fadeUp 0.3s ease; }
+.feedback-box.correct-fb { background: #e8f8f0; border-left: 4px solid var(--correct); }
+.feedback-box.incorrect-fb { background: #fde8e8; border-left: 4px solid var(--incorrect); }
+.feedback-box strong { display: block; margin-bottom: 3px; }
+
+.check-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700; font-size: 0.85rem;
+  padding: 10px 24px; border: none;
+  border-radius: 8px; background: var(--ink);
+  color: var(--paper); cursor: pointer;
+  margin-top: 8px; transition: all 0.2s;
+}
+.check-btn:hover { background: #2d2d4a; }
+.check-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* PASSAGE NAV BUTTONS */
+.passage-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  gap: 12px;
+}
+.nav-arrow {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700; font-size: 0.9rem;
+  padding: 12px 28px;
+  border: 2px solid var(--light-border);
+  border-radius: 10px;
+  background: transparent; color: var(--ink);
+  cursor: pointer; transition: all 0.2s;
+}
+.nav-arrow:hover { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.nav-arrow:disabled { opacity: 0.3; cursor: default; }
+.nav-arrow:disabled:hover { background: transparent; color: var(--ink); }
+
+/* RESULTS SCREEN */
+.results-screen {
+  display: none;
+  text-align: center;
+  padding: 50px 20px;
+}
+.results-screen.active { display: block; animation: fadeUp 0.4s ease; }
+.results-card {
+  background: linear-gradient(135deg, var(--ink), #2d2d4a);
+  border-radius: 18px;
+  padding: 40px 30px;
+  color: var(--paper);
+  max-width: 500px;
+  margin: 0 auto 30px;
+}
+.results-card .big-score {
+  font-family: 'Fraunces', serif;
+  font-weight: 900; font-size: 4.5rem;
+  color: var(--gold); line-height: 1;
+}
+.results-card .score-label {
+  font-size: 0.8rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold-light);
+  margin-bottom: 6px;
+}
+.results-card .time-result {
+  font-size: 1.1rem; color: #b8b4a8; margin-top: 12px;
+}
+.results-breakdown {
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: left;
+}
+.rb-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--light-border);
+  font-size: 0.92rem;
+}
+.rb-row .rb-pass { font-weight: 600; }
+.rb-row .rb-score { font-weight: 700; }
+.rb-row .rb-score.perfect { color: var(--correct); }
+
+.restart-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700; font-size: 0.95rem;
+  padding: 14px 36px; border: none;
+  border-radius: 10px;
+  background: var(--gold); color: var(--ink);
+  cursor: pointer; margin-top: 30px;
+  transition: all 0.2s;
+}
+.restart-btn:hover { background: var(--gold-light); }
+
+@media (max-width: 640px) {
+  .hero h1 { font-size: 2rem; }
+  .timer-bar { gap: 10px; padding: 10px 16px; }
+  .timer-clock { font-size: 1.4rem; }
+  .passage-num { font-size: 2rem; }
+  .question-block { padding: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-label">MCAT CARS</div>
+  <h1>Timed Practice <span>Arena</span></h1>
+  <p>Six full passages. 60 minutes. Build speed and accuracy under real exam pressure.</p>
+</div>
+
+<!-- STICKY TIMER BAR -->
+<div class="timer-bar">
+  <div class="passage-indicator" id="pass-indicator">PASSAGE 1 / 6</div>
+  <div class="passage-nav-group" id="pip-container"></div>
+  <div class="timer-clock" id="global-timer">60:00</div>
+  <button class="timer-btn" id="global-timer-btn" onclick="toggleGlobalTimer()">Start</button>
+  <button class="timer-btn" onclick="resetGlobalTimer()">Reset</button>
+</div>
+
+<div class="main">
+  <!-- Passages injected by JS -->
+  <div id="passages-container"></div>
+
+  <!-- Results -->
+  <div class="results-screen" id="results-screen">
+    <div class="results-card">
+      <div class="score-label">Final Score</div>
+      <div class="big-score" id="final-score">0 / 18</div>
+      <div class="time-result" id="final-time">Time: --:--</div>
+    </div>
+    <div class="results-breakdown" id="results-breakdown"></div>
+    <button class="restart-btn" onclick="location.reload()">Start Over</button>
+  </div>
+</div>
+
+<script>
+// ===== PASSAGE DATA =====
+const passages = [
+  {
+    id: 1,
+    topic: "Philosophy of Science",
+    title: "The Objectivity Illusion",
+    text: `The popular image of science as a purely objective enterprise, free from the biases and values that contaminate other forms of inquiry, has been under sustained assault for more than half a century. Thomas Kuhn's 1962 work argued that scientific revolutions are not driven solely by the accumulation of evidence but by paradigm shifts in which the community's shared assumptions are overthrown and replaced. What counts as a legitimate problem, an acceptable method, or a convincing explanation is determined not by nature alone but by the conceptual framework scientists bring to their observations.<br><br>Kuhn's critics accused him of relativism, of suggesting that science is no more reliable than astrology or alchemy. But this misreads his argument. Kuhn never denied that science makes genuine progress or that some theories are better than others. His point was subtler: the criteria by which we judge scientific theories are themselves products of historical and social context. A theory's elegance, its simplicity, its predictive power, these are values, and reasonable scientists can weigh them differently.<br><br>The implications extend beyond philosophy departments. In medical research, the choice of which diseases to study, which populations to include in clinical trials, and which outcomes to measure are all value-laden decisions that shape what we know and what remains invisible. The genome-wide association studies that dominate modern genetics, for instance, have drawn overwhelmingly from European-descent populations, producing a map of human genetic variation that is both genuinely informative and profoundly incomplete. Objectivity, then, is not a property that science either possesses or lacks. It is an aspiration that requires constant vigilance about the assumptions embedded in every stage of inquiry.`,
+    questions: [
+      {
+        stem: "The author's central argument is that scientific objectivity is best understood as:",
+        options: [
+          "An illusion that has been thoroughly debunked by philosophers of science",
+          "An ongoing aspiration requiring awareness of the values embedded in scientific practice",
+          "A standard that medical research meets but other sciences do not",
+          "A concept that Kuhn successfully proved to be indistinguishable from relativism"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The final sentence is the thesis: objectivity is 'an aspiration that requires constant vigilance.' The author doesn't say objectivity is fake (A), limited to medicine (C), or the same as relativism (D). The key word is 'aspiration,' meaning it's something to work toward, not something science automatically has.",
+          incorrect: "Re-read the final sentence: 'Objectivity... is an aspiration that requires constant vigilance about the assumptions embedded in every stage of inquiry.' This is the thesis. A is too extreme (the author doesn't say objectivity is an 'illusion' that's been 'debunked'). C is unsupported. D contradicts Paragraph 2, where the author defends Kuhn from the relativism charge."
+        }
+      },
+      {
+        stem: "The author discusses genome-wide association studies primarily to:",
+        options: [
+          "Criticize the field of genetics for unethical research practices",
+          "Provide a concrete example of how value-laden decisions shape scientific knowledge",
+          "Argue that European-descent populations are overrepresented in all medical research",
+          "Demonstrate that Kuhn's philosophy applies only to biological sciences"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The genetics example is introduced in the paragraph about how 'value-laden decisions' in medical research 'shape what we know.' The studies are described as 'genuinely informative and profoundly incomplete,' illustrating the point that choices about who to study shape the knowledge produced. It's a concrete instance of the broader argument.",
+          incorrect: "The author describes the studies as 'genuinely informative AND profoundly incomplete,' not unethical (A). The example isn't about all medical research (C) or limiting Kuhn to biology (D). It's a specific illustration of the paragraph's broader point: that choices about populations, outcomes, and methods are value-laden decisions that shape what science reveals and what it misses (B)."
+        }
+      },
+      {
+        stem: "Based on the passage, Kuhn would most likely respond to the accusation of relativism by arguing that:",
+        options: [
+          "Science and astrology are equally valid ways of understanding the natural world",
+          "Scientific theories cannot be meaningfully compared to one another",
+          "Acknowledging the role of values in science does not mean all theories are equally good",
+          "Only paradigm shifts, not accumulated evidence, drive scientific progress"
+        ],
+        correct: 2,
+        feedback: {
+          correct: "Paragraph 2 directly addresses this: 'Kuhn never denied that science makes genuine progress or that some theories are better than others. His point was subtler: the criteria by which we judge scientific theories are themselves products of historical and social context.' This means acknowledging values doesn't collapse into 'anything goes.' That's answer C.",
+          incorrect: "Paragraph 2 tells you exactly how the author thinks Kuhn would respond. A is the misreading the author explicitly rejects. B contradicts 'some theories are better than others.' D overstates Kuhn's position (he argued paradigms matter, not that evidence doesn't). C captures the nuance: values play a role, but that doesn't make all theories equal."
+        }
+      }
+    ]
+  },
+  {
+    id: 2,
+    topic: "Art & Cultural Criticism",
+    title: "The Museum Problem",
+    text: `When the British Museum displays the Parthenon Marbles, it presents them as universal cultural heritage, masterpieces that belong to all of humanity and are best appreciated in the context of a comprehensive world collection. The Greek government, which has campaigned for their return since 1983, sees them differently: as stolen property, removed under dubious legal authority during Ottoman occupation and inseparable from the building and culture that produced them. The dispute is usually framed as a question of law or diplomacy, but at its core it is a philosophical argument about what museums are for.<br><br>The universal museum model, championed by institutions in London, Paris, and New York, rests on an Enlightenment premise: that placing objects from diverse civilizations side by side enables a form of comparative understanding unavailable to any single culture in isolation. There is something to this argument. Seeing Egyptian, Greek, and Assyrian artifacts in proximity does invite a kind of thinking that a single-culture museum cannot replicate. But the argument conveniently ignores how those objects arrived at the museum in the first place, and it assumes that the educational benefit to visitors in wealthy Western capitals outweighs the cultural loss experienced by the communities from which the objects were taken.<br><br>A newer model of museum practice has emerged in response, one that emphasizes collaboration, loan agreements, and digital repatriation. The Smithsonian's National Museum of the American Indian, for example, has returned thousands of sacred objects to tribal nations while maintaining its educational mission. These experiments suggest that the choice between universal access and cultural justice is a false binary. The real question is not whether museums should exist but whether they can learn to hold objects without claiming ownership of the stories those objects tell.`,
+    questions: [
+      {
+        stem: "The author's attitude toward the 'universal museum model' is best described as:",
+        options: [
+          "Complete rejection based on its colonial origins",
+          "Qualified acknowledgment of its value paired with criticism of its blind spots",
+          "Enthusiastic endorsement tempered only by minor logistical concerns",
+          "Detached neutrality, presenting both sides without taking a position"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The author says 'There is something to this argument' (partial acknowledgment) but follows with 'the argument conveniently ignores' (criticism). This qualified, both-and tone is classic CARS. A is too extreme, C overstates positivity, and D is wrong because the author clearly takes a position favoring the newer model in Paragraph 3.",
+          incorrect: "Track the author's evaluative language. 'There is something to this argument' shows partial agreement, ruling out A (complete rejection). But 'conveniently ignores' is pointed criticism, ruling out C (enthusiastic endorsement). And the author clearly favors the newer model ('these experiments suggest'), ruling out D (neutrality). B captures the nuanced position: partial credit, but significant criticism."
+        }
+      },
+      {
+        stem: "The passage implies that the British Museum's framing of the Parthenon Marbles as 'universal cultural heritage' primarily serves to:",
+        options: [
+          "Acknowledge Greece's historical claim to the sculptures",
+          "Justify the museum's continued possession by appealing to a higher principle",
+          "Promote cross-cultural understanding between Britain and Greece",
+          "Encourage other museums to adopt collaborative loan practices"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The author describes the universal heritage framing as what the British Museum 'presents' in contrast to Greece's view of them as 'stolen property.' Paragraph 2 then notes this argument 'conveniently ignores' how objects arrived. The implication is clear: the 'universal heritage' framing functions as a justification for keeping the objects. B captures this.",
+          incorrect: "The framing is presented as the British Museum's position, set against Greece's counter-claim. A is the opposite of what the framing does. C is too narrow (it's about all humanity, not just Britain-Greece relations). D describes the newer model, not the British Museum's approach. The passage implies the universal heritage claim 'conveniently' serves the museum's interest in retaining the marbles (B)."
+        }
+      },
+      {
+        stem: "Which of the following, if true, would most STRENGTHEN the author's argument in the final paragraph?",
+        options: [
+          "Digital replicas of repatriated objects attract fewer museum visitors than original artifacts",
+          "A museum that repatriated artifacts to source communities reported increased visitor engagement and educational impact",
+          "The majority of museum professionals oppose repatriation on principle",
+          "International law currently favors the possessing institution in most repatriation disputes"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The author's Paragraph 3 argument is that universal access and cultural justice is a 'false binary,' meaning museums can do both. A museum that repatriated AND saw increased engagement would directly prove this claim. A would weaken the argument. C and D are about opposition and legal status, neither of which addresses the 'false binary' claim.",
+          incorrect: "The author's key claim is that 'the choice between universal access and cultural justice is a false binary.' To strengthen this, you need evidence that doing both is possible. B provides exactly this: a museum that returned objects AND improved its mission. A weakens the argument. C and D describe obstacles but don't address whether the binary is truly false."
+        }
+      }
+    ]
+  },
+  {
+    id: 3,
+    topic: "Psychology & Behavior",
+    title: "The Willpower Myth",
+    text: `For most of the twentieth century, self-control was understood as a finite resource, a kind of mental muscle that could be strengthened through exercise but also depleted through overuse. Roy Baumeister's influential "ego depletion" model held that resisting one temptation left individuals with less capacity to resist the next, explaining everything from diet failures to impulsive spending. The metaphor was intuitive, the studies were compelling, and the model became one of the most widely cited frameworks in social psychology.<br><br>Then came the replication crisis. When independent researchers attempted to reproduce Baumeister's foundational experiments using larger sample sizes and pre-registered protocols, the effects either vanished or shrank to statistical irrelevance. A massive 2016 multi-lab replication involving over two thousand participants found no evidence for ego depletion whatsoever. The mental muscle, it appeared, might have been a mirage produced by small samples, flexible analysis, and publication bias favoring dramatic results.<br><br>The collapse of ego depletion does not mean that self-control is unlimited or that people never feel mentally exhausted. What it suggests is that the mechanism is different from what Baumeister proposed. Emerging research points to motivation and belief as key variables: people who believe willpower is limited behave as though it is, while those who view it as renewable show no depletion effects. The experience of mental fatigue may be less like a drained battery and more like a shifting priority, a signal from the brain that the current task is no longer worth the effort relative to other available options. If this reframing is correct, then the solution to self-control failures is not to strengthen some internal resource but to restructure the environment and incentives that shape motivation.`,
+    questions: [
+      {
+        stem: "The passage is best described as:",
+        options: [
+          "A defense of Baumeister's ego depletion model against unfair criticism",
+          "An account of how a widely accepted psychological model was challenged and replaced by a different explanation",
+          "A comprehensive review of all current theories of self-control",
+          "An argument that self-control is entirely a matter of personal belief"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The passage follows a clear arc: Paragraph 1 presents the old model, Paragraph 2 describes its failure to replicate, and Paragraph 3 offers an alternative explanation. This is a story of model replacement, not defense (A), comprehensive review (C), or a claim about belief alone (D, which is only part of the new explanation).",
+          incorrect: "Map the passage structure: P1 = established model, P2 = replication failure, P3 = alternative explanation. A is wrong because the author sides with the replication evidence. C is too broad (only two models are discussed). D oversimplifies P3, which mentions belief AND motivation AND environmental restructuring. B captures the full narrative arc: old model challenged, new explanation offered."
+        }
+      },
+      {
+        stem: "The author uses the phrase 'a mirage produced by small samples, flexible analysis, and publication bias' to suggest that:",
+        options: [
+          "Baumeister deliberately fabricated his research data",
+          "The original ego depletion findings were likely artifacts of flawed research methodology",
+          "All social psychology research is unreliable",
+          "Small sample sizes are acceptable when studying ego depletion"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The word 'mirage' means something that appears real but isn't. The author attributes the apparent effect to methodological problems (small samples, flexible analysis, publication bias), not fraud (A). C overgeneralizes, and D contradicts the point being made. B correctly identifies the claim: the findings were artifacts of how the research was conducted.",
+          incorrect: "'Mirage' means an illusion, not a fabrication. The author identifies specific methodological problems that can produce false-positive results without anyone cheating, ruling out A. C takes the critique far beyond its scope. D contradicts the passage (small samples are listed as a problem). B is correct: the findings were likely artifacts of flawed methodology."
+        }
+      },
+      {
+        stem: "Based on the passage, the 'shifting priority' model of mental fatigue would predict that a person studying for an exam would be most likely to lose focus when:",
+        options: [
+          "Their internal willpower reserve reaches zero after prolonged effort",
+          "The perceived value of continuing to study drops below the appeal of available alternatives",
+          "They have not practiced enough self-control exercises to build mental stamina",
+          "They encounter material that is objectively more difficult than previous material"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The passage describes the shifting priority model as: fatigue is 'a signal from the brain that the current task is no longer worth the effort relative to other available options.' So losing focus occurs when the cost-benefit calculation shifts, not when a resource runs out (A), stamina is low (C), or difficulty increases per se (D). B captures the model's prediction.",
+          incorrect: "The shifting priority model explicitly contrasts with the 'drained battery' metaphor. A and C assume the depleted-resource model the passage rejects. D focuses on difficulty alone, but the model is about relative value ('worth the effort relative to other available options'). B matches the model: focus drops when continuing feels less worthwhile than alternatives."
+        }
+      }
+    ]
+  },
+  {
+    id: 4,
+    topic: "Ethics & Technology",
+    title: "The Transparency Trap",
+    text: `The demand for algorithmic transparency has become a rallying cry in technology ethics, with critics insisting that the public has a right to understand how the automated systems shaping their lives actually work. On its face, the demand seems unassailable: a democratic society cannot hold institutions accountable for decisions it cannot see. But the push for transparency, taken to its logical endpoint, encounters problems that its advocates rarely acknowledge.<br><br>The first problem is technical. Modern machine learning systems, particularly deep neural networks, do not operate according to rules that humans can easily interpret. Explaining why a neural network denied a loan application is not like explaining why a rule-based system did so. The network's "reasoning" is distributed across millions of weighted connections in a way that resists translation into human language. Demanding that companies explain these systems in plain English may produce explanations that are either misleadingly simplified or genuinely incomprehensible to non-specialists.<br><br>The second problem is strategic. Full transparency about how a system works is an invitation to game it. If an insurance company reveals exactly how its algorithm calculates risk, customers can manipulate their inputs to receive lower premiums without actually reducing their risk. Credit scoring systems that publicize their weightings become less accurate as applicants optimize for the metrics rather than the underlying behaviors the metrics are meant to capture. Transparency, in these cases, does not serve the public interest but undermines the system's ability to function.<br><br>None of this means we should abandon accountability. But it does suggest that transparency is a poor proxy for it. What the public actually needs is not the ability to read an algorithm's source code but confidence that the system has been audited for bias, tested for accuracy, and subjected to meaningful oversight by regulators with the expertise and authority to demand changes. Accountability without full transparency is not only possible but may be the only workable approach.`,
+    questions: [
+      {
+        stem: "The author's primary argument is that:",
+        options: [
+          "Algorithmic systems should never be subject to public scrutiny",
+          "Full algorithmic transparency is neither technically feasible nor strategically desirable, so accountability should be pursued through other means",
+          "Machine learning systems are too complex for any form of regulation",
+          "The public's demand for transparency is motivated by ignorance of how technology works"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The passage presents two problems with transparency (technical, strategic) and then argues for accountability through auditing and oversight instead. B captures this full argument. A goes too far (the author wants accountability, just not via full transparency). C is too extreme. D attributes motives the author never discusses.",
+          incorrect: "The author doesn't oppose all scrutiny (A) or all regulation (C), and doesn't call the public ignorant (D). The argument has three moves: (1) transparency has a technical problem, (2) it has a strategic problem, (3) but accountability is still needed, just through auditing and oversight rather than transparency. B captures all three moves."
+        }
+      },
+      {
+        stem: "The credit scoring example in Paragraph 3 is used to illustrate the concept that:",
+        options: [
+          "Credit scoring algorithms are inherently unfair to consumers",
+          "Publishing how a system works can cause people to manipulate it, reducing the system's effectiveness",
+          "Financial institutions have a moral obligation to keep algorithms secret",
+          "Transparency always leads to worse outcomes than secrecy"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The author's point is specific: when you reveal the weightings, 'applicants optimize for the metrics rather than the underlying behaviors the metrics are meant to capture.' This is gaming: transparency causes strategic manipulation that makes the system less accurate. B captures this. A, C, and D go beyond or distort the specific argument being made.",
+          incorrect: "The passage doesn't claim credit scoring is inherently unfair (A), that secrecy is a moral obligation (C), or that transparency is always worse (D, too extreme). The specific argument is that revealing exactly how the system works invites gaming, and 'applicants optimize for the metrics rather than the underlying behaviors.' B captures this strategic problem."
+        }
+      },
+      {
+        stem: "The author would most likely agree with which of the following statements?",
+        options: [
+          "Companies should be free to deploy algorithms without any external review",
+          "Explaining a neural network's decision in plain English will always be fully accurate",
+          "Independent auditors testing algorithms for bias could provide meaningful accountability without requiring full public disclosure",
+          "The public has no legitimate interest in how automated systems affect their lives"
+        ],
+        correct: 2,
+        feedback: {
+          correct: "The final paragraph explicitly calls for systems 'audited for bias, tested for accuracy, and subjected to meaningful oversight.' This is accountability without full transparency, exactly what C describes. A contradicts the call for oversight. B contradicts Paragraph 2's warning about misleading simplification. D contradicts the acknowledgment that accountability matters.",
+          incorrect: "The final paragraph is the key. The author wants 'audited for bias, tested for accuracy, and subjected to meaningful oversight by regulators.' A (no review) directly contradicts this. B contradicts P2's point about misleading explanations. D contradicts the entire premise that accountability matters. C matches the author's proposed solution: audit-based accountability without requiring full public disclosure."
+        }
+      }
+    ]
+  },
+  {
+    id: 5,
+    topic: "History & Economics",
+    title: "Cotton's Long Shadow",
+    text: `The economic historians who study the origins of industrial capitalism have long debated whether slavery was incidental to or constitutive of the modern global economy. The older view, associated with classical economists, treated slavery as a pre-modern relic that was destined to wither as free labor proved more efficient. The newer scholarship, crystallized in works published over the past two decades, argues something far more uncomfortable: that the cotton economy built on enslaved labor did not merely coexist with industrial capitalism but was its essential precondition.<br><br>The argument rests on several interlocking claims. First, cotton produced by enslaved workers in the American South supplied the raw material for the textile mills that drove Britain's Industrial Revolution. Without cheap cotton, there would have been no cheap cloth, no mass consumer market, and no template for the factory system that subsequently reshaped every industry it touched. Second, the financial instruments developed to manage the cotton trade, including mortgage-backed securities collateralized by enslaved people themselves, pioneered techniques of risk distribution and capital mobilization that remain central to modern finance. Third, the managerial practices of the plantation, with its obsessive record-keeping, productivity benchmarks, and surveillance of workers, anticipated the "scientific management" of the twentieth-century corporation.<br><br>Critics of this framework object that correlation is not causation. Britain's industrial takeoff, they contend, would have occurred with or without slave-produced cotton, driven by domestic innovation, coal deposits, and institutional advantages. The debate is unlikely to be resolved definitively, in part because history does not allow for controlled experiments. But the newer scholarship has succeeded in shifting the burden of proof: it is no longer credible to tell the story of capitalism's rise without acknowledging the central role of coerced labor.`,
+    questions: [
+      {
+        stem: "The author presents the 'newer scholarship' as arguing that slavery:",
+        options: [
+          "Was morally wrong but economically irrelevant to capitalism's development",
+          "Was a necessary foundation for the institutions, financial systems, and production methods of industrial capitalism",
+          "Delayed industrialization by diverting resources away from technological innovation",
+          "Was practiced in Britain's textile factories as well as in American plantations"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The passage describes three 'interlocking claims' of the newer scholarship: slavery provided raw materials for industrialization, pioneered financial instruments, and anticipated modern management practices. Together, these make slavery 'constitutive of' (foundational to) modern capitalism, not incidental to it. B captures this. A is the older view. C and D are unsupported.",
+          incorrect: "A describes the older view the newer scholarship challenges. C is unsupported (nothing about delaying industrialization). D is unsupported (British factories used wage labor). The newer scholarship's three claims, raw materials, financial instruments, management practices, all argue that slavery was foundational to capitalism (B), not a relic alongside it."
+        }
+      },
+      {
+        stem: "The author's characterization of mortgage-backed securities collateralized by enslaved people serves to:",
+        options: [
+          "Demonstrate that slavery was a pre-modern economic practice",
+          "Draw a direct connection between slave-economy financial innovations and modern financial systems",
+          "Argue that modern banks are morally responsible for slavery",
+          "Show that enslaved people benefited from financial innovation"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "This detail supports the second 'interlocking claim': that financial instruments from the slave economy 'remain central to modern finance.' The point is continuity between slave-era financial innovation and today's financial system. B captures this link. A contradicts the argument (these were modern innovations). C and D are unsupported.",
+          incorrect: "The mortgage-backed securities example is part of the second claim: that slave-economy innovations 'remain central to modern finance.' A contradicts the point (these instruments were innovative, not pre-modern). C introduces moral blame the passage doesn't discuss. D is absurd in context. B correctly identifies the function: drawing a line from slave-era finance to modern finance."
+        }
+      },
+      {
+        stem: "The passage suggests that the debate between the older and newer views of slavery's economic role is difficult to resolve because:",
+        options: [
+          "Historians lack access to reliable economic data from the period",
+          "Both sides are politically motivated rather than evidence-driven",
+          "Historical events cannot be subjected to experimental conditions that would isolate causal variables",
+          "The newer scholarship has been universally accepted by the academic community"
+        ],
+        correct: 2,
+        feedback: {
+          correct: "The passage states directly: 'The debate is unlikely to be resolved definitively, in part because history does not allow for controlled experiments.' You cannot rerun history without slavery to see what happens. C paraphrases this exactly. A and B are unsupported. D contradicts the existence of 'critics' in the same paragraph.",
+          incorrect: "The passage gives an explicit reason: 'history does not allow for controlled experiments.' This means you cannot test the counterfactual (what if there had been no slave cotton?). A (unreliable data) is not mentioned. B (political motivation) is not discussed. D contradicts the fact that critics are presented in the same paragraph. C matches the passage's stated reason."
+        }
+      }
+    ]
+  },
+  {
+    id: 6,
+    topic: "Literature & Language",
+    title: "Translation as Betrayal",
+    text: `The Italian proverb "traduttore, traditore" (translator, traitor) captures a suspicion that has haunted literary translation for centuries: that the act of moving a text from one language to another inevitably distorts it, producing something that is neither the original work nor an entirely new one but a compromised hybrid. This suspicion rests on a particular theory of language, one that treats words as tightly bound to specific cultural, historical, and phonetic contexts from which they cannot be extracted without loss.<br><br>There is considerable truth in this view. When a translator renders Proust's "madeleine" into English, the word arrives intact, but the web of associations it carries for a French reader, the specific class connotations of the pastry, its place in French domestic ritual, the way the word sounds nested among other French words, does not survive the crossing. The translated text gestures toward these meanings without fully embodying them. Similarly, the formal properties of poetry, meter, rhyme scheme, the interplay of sound and sense, are so language-specific that a "faithful" translation of a sonnet's meaning almost always requires infidelity to its music, and vice versa.<br><br>Yet the case against translation proves too much. If perfect equivalence between languages is impossible, so is perfect communication between any two speakers of the same language. Every reader brings a different set of associations, experiences, and interpretive habits to a text, and no author can fully control the meanings their words generate. The gap between writer and reader is a feature of language itself, not a special defect introduced by translation. What translation does is make this universal condition visible. Far from betraying the original, a great translation extends its life, carrying it into conversations and contexts its author could never have imagined, and in doing so reveals dimensions of the text that monolingual readers might never perceive.`,
+    questions: [
+      {
+        stem: "The author introduces the example of Proust's 'madeleine' in order to:",
+        options: [
+          "Argue that French literature is inherently superior to its English translations",
+          "Concede that translation genuinely does lose certain cultural and phonetic associations",
+          "Demonstrate that food references are particularly difficult to translate between languages",
+          "Prove that the Italian proverb about translation is entirely correct"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The madeleine example comes in a paragraph that begins 'There is considerable truth in this view,' meaning the author is conceding the anti-translation argument has merit. The example shows specific things that don't 'survive the crossing.' But this concession is followed by the rebuttal in Paragraph 3, so it's a concede-then-rebut structure. B captures the concession function. A, C, and D go beyond the example's role.",
+          incorrect: "The madeleine example appears in the concession paragraph, not the author's main argument. A (French superiority) is unsupported. C (food specifically) is too narrow. D (the proverb is entirely correct) contradicts Paragraph 3, where the author argues against the proverb's conclusion. B correctly identifies the function: conceding that translation does lose cultural/phonetic associations, before the author pivots to a rebuttal."
+        }
+      },
+      {
+        stem: "The author's statement that 'the case against translation proves too much' most nearly means that:",
+        options: [
+          "Critics of translation have provided excessive evidence for their position",
+          "The argument against translation, if taken to its logical conclusion, would undermine all communication, not just translation",
+          "Translation scholars have exaggerated the difficulty of their work",
+          "There is overwhelming evidence that translation is always harmful to the original text"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "'Proves too much' is a logical term meaning an argument's own logic leads to absurd or overly broad conclusions the arguer didn't intend. The author shows that if imperfect equivalence invalidates translation, it also invalidates all communication between any two people. The anti-translation argument thus 'proves too much' by undermining language itself. B captures this.",
+          incorrect: "'Proves too much' is a formal argument term. It doesn't mean 'too much evidence' (A) or 'exaggeration' (C) or 'overwhelming proof' (D). It means the argument's logic, if applied consistently, leads to conclusions broader than intended. The author shows that the same logic (imperfect equivalence = betrayal) would indict ALL communication, not just translation. B captures this reductio ad absurdum move."
+        }
+      },
+      {
+        stem: "Based on the passage, the author would most likely view a widely read English translation of a Japanese novel as:",
+        options: [
+          "A betrayal of the author's original artistic vision that should be avoided",
+          "An inevitably flawed but valuable vehicle that extends the novel's reach and reveals new dimensions of the text",
+          "A perfect reproduction of the original that loses nothing in the transfer between languages",
+          "A commercial product with no literary merit independent of the original"
+        ],
+        correct: 1,
+        feedback: {
+          correct: "The final paragraph argues that 'a great translation extends its life, carrying it into conversations and contexts its author could never have imagined, and in doing so reveals dimensions of the text that monolingual readers might never perceive.' While the author concedes losses exist (P2), the overall view is that translation is valuable. B captures both the acknowledged imperfection and the celebrated value.",
+          incorrect: "The author's final position is pro-translation despite acknowledged limitations. A reflects the position the author argues against. C contradicts the Paragraph 2 concession about genuine losses. D is unsupported and contradicts 'reveals dimensions of the text.' B matches the author's nuanced view: translation is imperfect but extends a work's life and reveals new dimensions."
+        }
+      }
+    ]
+  }
+];
+
+// ===== STATE =====
+let currentPassage = 0;
+let answers = {}; // { "p0q1": selectedIdx, ... }
+let locked = {};  // { "p0q1": true }
+let correctCount = 0;
+let passageCorrect = [0,0,0,0,0,0];
+let timerRunning = false;
+let timerInterval = null;
+let timerSeconds = 3600; // 60 min
+
+// ===== RENDER =====
+function renderAll() {
+  const container = document.getElementById('passages-container');
+  container.innerHTML = '';
+  const pipContainer = document.getElementById('pip-container');
+  pipContainer.innerHTML = '';
+
+  passages.forEach((p, pi) => {
+    // Pip
+    const pip = document.createElement('button');
+    pip.className = 'passage-pip' + (pi === 0 ? ' active' : '');
+    pip.textContent = pi + 1;
+    pip.id = 'pip-' + pi;
+    pip.onclick = () => goToPassage(pi);
+    pipContainer.appendChild(pip);
+
+    // Section
+    const sec = document.createElement('div');
+    sec.className = 'passage-section' + (pi === 0 ? ' active' : '');
+    sec.id = 'passage-' + pi;
+
+    let questionsHTML = '';
+    p.questions.forEach((q, qi) => {
+      const qid = `p${pi}q${qi}`;
+      let optsHTML = '';
+      const letters = ['A','B','C','D'];
+      q.options.forEach((opt, oi) => {
+        optsHTML += `<button class="option-btn" data-qid="${qid}" data-idx="${oi}" onclick="selectOption('${qid}', ${oi})"><strong>${letters[oi]}.</strong> ${opt}</button>`;
+      });
+      questionsHTML += `
+        <div class="question-block">
+          <div class="q-num">Question ${qi + 1} of ${p.questions.length}</div>
+          <div class="q-stem">${q.stem}</div>
+          ${optsHTML}
+          <button class="check-btn" id="check-${qid}" onclick="checkAnswer('${qid}', ${pi}, ${qi})" disabled>Check Answer</button>
+          <div class="feedback-box" id="fb-${qid}"></div>
+        </div>
+      `;
+    });
+
+    sec.innerHTML = `
+      <div class="passage-header">
+        <div class="passage-num">${String(pi+1).padStart(2,'0')}</div>
+        <div class="passage-meta">
+          <div class="pm-label">${p.topic}</div>
+          <div class="pm-title">${p.title}</div>
+        </div>
+      </div>
+      <div class="passage-block">${p.text}</div>
+      ${questionsHTML}
+      <div class="passage-footer">
+        <button class="nav-arrow" ${pi === 0 ? 'disabled' : ''} onclick="goToPassage(${pi - 1})">&#8592; Previous</button>
+        ${pi < passages.length - 1
+          ? `<button class="nav-arrow" onclick="goToPassage(${pi + 1})">Next &#8594;</button>`
+          : `<button class="nav-arrow" onclick="showResults()" style="background:var(--gold);color:var(--ink);border-color:var(--gold);">Finish &amp; Score</button>`
+        }
+      </div>
+    `;
+    container.appendChild(sec);
+  });
+}
+
+function goToPassage(idx) {
+  if (idx < 0 || idx >= passages.length) return;
+  document.querySelectorAll('.passage-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.passage-pip').forEach(p => p.classList.remove('active'));
+  document.getElementById('passage-' + idx).classList.add('active');
+  document.getElementById('pip-' + idx).classList.add('active');
+  currentPassage = idx;
+  document.getElementById('pass-indicator').textContent = `PASSAGE ${idx + 1} / ${passages.length}`;
+  window.scrollTo({top: 200, behavior: 'smooth'});
+}
+
+function selectOption(qid, idx) {
+  if (locked[qid]) return;
+  answers[qid] = idx;
+  document.querySelectorAll(`[data-qid="${qid}"]`).forEach(b => b.classList.remove('selected'));
+  document.querySelector(`[data-qid="${qid}"][data-idx="${idx}"]`).classList.add('selected');
+  document.getElementById('check-' + qid).disabled = false;
+}
+
+function checkAnswer(qid, pi, qi) {
+  if (locked[qid]) return;
+  locked[qid] = true;
+  const q = passages[pi].questions[qi];
+  const selected = answers[qid];
+  const isCorrect = selected === q.correct;
+
+  if (isCorrect) {
+    correctCount++;
+    passageCorrect[pi]++;
+  }
+
+  document.querySelectorAll(`[data-qid="${qid}"]`).forEach(b => {
+    b.classList.add('locked');
+    if (parseInt(b.dataset.idx) === q.correct) b.classList.add('correct');
+    if (b.classList.contains('selected') && !isCorrect) b.classList.add('incorrect');
+  });
+
+  const fb = document.getElementById('fb-' + qid);
+  fb.className = 'feedback-box show ' + (isCorrect ? 'correct-fb' : 'incorrect-fb');
+  fb.innerHTML = `<strong>${isCorrect ? '✓ Correct!' : '✗ Not quite.'}</strong>${isCorrect ? q.feedback.correct : q.feedback.incorrect}`;
+  document.getElementById('check-' + qid).disabled = true;
+
+  // Check if all questions in passage are done
+  const allDone = passages[pi].questions.every((_, qi2) => locked[`p${pi}q${qi2}`]);
+  if (allDone) {
+    document.getElementById('pip-' + pi).classList.add('complete');
+  }
+}
+
+function showResults() {
+  if (timerRunning) toggleGlobalTimer();
+  const elapsed = 3600 - timerSeconds;
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+
+  document.querySelectorAll('.passage-section').forEach(s => s.classList.remove('active'));
+  const rs = document.getElementById('results-screen');
+  rs.classList.add('active');
+  document.getElementById('final-score').textContent = correctCount + ' / 18';
+  document.getElementById('final-time').textContent = `Completed in ${m}m ${s < 10 ? '0' : ''}${s}s`;
+
+  let breakdownHTML = '';
+  passages.forEach((p, pi) => {
+    const sc = passageCorrect[pi];
+    const total = p.questions.length;
+    breakdownHTML += `
+      <div class="rb-row">
+        <span class="rb-pass">P${pi+1}: ${p.title}</span>
+        <span class="rb-score ${sc === total ? 'perfect' : ''}">${sc} / ${total}</span>
+      </div>
+    `;
+  });
+  document.getElementById('results-breakdown').innerHTML = breakdownHTML;
+  document.getElementById('pass-indicator').textContent = 'RESULTS';
+  window.scrollTo({top: 200, behavior: 'smooth'});
+}
+
+// ===== GLOBAL TIMER =====
+function toggleGlobalTimer() {
+  if (!timerRunning) {
+    timerRunning = true;
+    document.getElementById('global-timer-btn').textContent = 'Pause';
+    document.getElementById('global-timer-btn').classList.add('active');
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerSeconds = 0;
+        timerRunning = false;
+        document.getElementById('global-timer-btn').textContent = 'Time!';
+      }
+      updateGlobalTimer();
+    }, 1000);
+  } else {
+    timerRunning = false;
+    clearInterval(timerInterval);
+    document.getElementById('global-timer-btn').textContent = 'Resume';
+    document.getElementById('global-timer-btn').classList.remove('active');
+  }
+}
+
+function resetGlobalTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = 3600;
+  updateGlobalTimer();
+  document.getElementById('global-timer-btn').textContent = 'Start';
+  document.getElementById('global-timer-btn').classList.remove('active');
+  document.getElementById('global-timer').classList.remove('danger');
+}
+
+function updateGlobalTimer() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  const display = document.getElementById('global-timer');
+  display.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  if (timerSeconds <= 120) {
+    display.classList.add('danger');
+  } else {
+    display.classList.remove('danger');
+  }
+}
+
+// INIT
+renderAll();
+</script>
+
+</body>
+</html>
