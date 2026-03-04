@@ -321,6 +321,106 @@ body {
   .question-block { padding: 18px; }
 }
 
+/* ─── WCAG 2.1 AA: Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .timer-clock.danger { animation: none !important; opacity: 1 !important; }
+  .passage-section { animation: none !important; }
+  .feedback-box { animation: none !important; }
+  .results-screen { animation: none !important; }
+}
+
+/* ─── CARS Strategy Tips Box ─── */
+.cars-tips {
+  background: #1a1a2e;
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin-bottom: 30px;
+  color: var(--paper);
+}
+.cars-tips-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-family: 'Fraunces', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+}
+.cars-tips-toggle:focus-visible { outline: 3px solid #005fcc; outline-offset: 4px; border-radius: 4px; }
+.cars-tips-toggle .toggle-icon { font-size: 1.2rem; transition: transform 0.25s; }
+.cars-tips-toggle[aria-expanded="true"] .toggle-icon { transform: rotate(180deg); }
+.cars-tips-body { margin-top: 18px; display: none; }
+.cars-tips-body.open { display: block; }
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 4px;
+}
+.tip-card {
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--teal-light);
+}
+.tip-card .tip-title {
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--teal-light);
+  margin-bottom: 6px;
+}
+.tip-card p {
+  font-size: 0.88rem;
+  color: #c8c4bc;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ─── Score Band Guide ─── */
+.score-band {
+  background: var(--card-bg);
+  border: 1px solid var(--light-border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin-top: 24px;
+  font-size: 0.9rem;
+}
+.score-band h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+.band-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 0.87rem;
+}
+.band-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.band-excellent { background: var(--correct); }
+.band-good { background: var(--teal); }
+.band-developing { background: var(--gold); }
+.band-early { background: var(--accent); }
+
 /* ─── WCAG 2.1 AA: Visible focus indicators ─── */
 :focus-visible {
   outline: 3px solid #005fcc !important;
@@ -354,37 +454,81 @@ body {
 <body>
 <a href="#main-content" class="skip-link">Skip to main content</a>
 
-
-<div class="hero">
-  <div class="hero-label">MCAT CARS</div>
-  <h1>Timed Practice <span>Arena</span></h1>
-  <p>Six full passages. 60 minutes. Build speed and accuracy under real exam pressure.</p>
-</div>
+<header>
+  <div class="hero" role="banner">
+    <div class="hero-label">MCAT CARS</div>
+    <h1>Timed Practice <span>Arena</span></h1>
+    <p>Six full passages. 60 minutes. Build speed and accuracy under real exam pressure.</p>
+  </div>
+</header>
 
 <!-- STICKY TIMER BAR -->
-<div class="timer-bar">
-  <div class="passage-indicator" id="pass-indicator">PASSAGE 1 / 6</div>
-  <div class="passage-nav-group" id="pip-container"></div>
-  <div class="timer-clock" id="global-timer">60:00</div>
-  <button class="timer-btn" id="global-timer-btn" onclick="toggleGlobalTimer()">Start</button>
-  <button class="timer-btn" onclick="resetGlobalTimer()">Reset</button>
-</div>
+<nav class="timer-bar" aria-label="Passage navigation and timer controls">
+  <div class="passage-indicator" id="pass-indicator" aria-live="polite" aria-atomic="true">PASSAGE 1 / 6</div>
+  <div class="passage-nav-group" id="pip-container" role="group" aria-label="Jump to passage"></div>
+  <div class="timer-clock" id="global-timer" aria-label="Time remaining" aria-live="off">60:00</div>
+  <button class="timer-btn" id="global-timer-btn" onclick="toggleGlobalTimer()" aria-pressed="false">Start</button>
+  <button class="timer-btn" onclick="resetGlobalTimer()" aria-label="Reset timer to 60 minutes">Reset</button>
+</nav>
 
-<div class="main">
+<main class="main" id="main-content">
+  <!-- CARS Strategy Tips -->
+  <div class="cars-tips" aria-label="CARS strategy tips">
+    <button class="cars-tips-toggle" aria-expanded="false" aria-controls="cars-tips-body" onclick="toggleTips(this)">
+      <span>&#128218; CARS Strategy Quick Reference</span>
+      <span class="toggle-icon" aria-hidden="true">&#9660;</span>
+    </button>
+    <div class="cars-tips-body" id="cars-tips-body" role="region" aria-label="Strategy tips content">
+      <div class="tips-grid">
+        <div class="tip-card">
+          <div class="tip-title">&#128269; Read for Structure</div>
+          <p>Find the main argument in the first and last paragraph. Each body paragraph usually supports, qualifies, or contrasts with that central claim. Ask: "What is the author's opinion and how is it organized?"</p>
+        </div>
+        <div class="tip-card">
+          <div class="tip-title">&#128221; Author's Tone</div>
+          <p>Notice evaluative language: "unfortunately," "clearly," "surprisingly," "problematic." These signal the author's attitude. Tone questions are almost always answered by these signal words, not by the topic itself.</p>
+        </div>
+        <div class="tip-card">
+          <div class="tip-title">&#9888;&#65039; Extreme Answers</div>
+          <p>Words like "always," "never," "only," "impossible," "completely" usually make an answer wrong. CARS authors hedge and qualify. Prefer answers with language like "tends to," "often," or "can."</p>
+        </div>
+        <div class="tip-card">
+          <div class="tip-title">&#128259; Strengthen / Weaken</div>
+          <p>For these questions, identify the specific claim being strengthened or weakened before reading the options. The correct answer directly addresses that claim, not some related topic.</p>
+        </div>
+        <div class="tip-card">
+          <div class="tip-title">&#128336; Passage Timing</div>
+          <p>Target 8–9 minutes per passage (read + answer all questions). If you spend more than 5 minutes just reading, you're reading too deep. Skim for structure on the first pass, then return for details only as questions demand.</p>
+        </div>
+        <div class="tip-card">
+          <div class="tip-title">&#128101; Main Idea Trap</div>
+          <p>Main idea questions often have a "too broad" and a "too narrow" wrong answer. The correct answer captures the author's central argument without adding claims the author never made. Beware of answers that are factually true but not the author's point.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Passages injected by JS -->
-  <div id="passages-container"></div>
+  <div id="passages-container" aria-live="polite" aria-atomic="false"></div>
 
   <!-- Results -->
-  <div class="results-screen" id="results-screen">
+  <section class="results-screen" id="results-screen" aria-label="Your final results" aria-hidden="true">
     <div class="results-card">
       <div class="score-label">Final Score</div>
-      <div class="big-score" id="final-score">0 / 18</div>
+      <div class="big-score" id="final-score" aria-live="polite">0 / 18</div>
       <div class="time-result" id="final-time">Time: --:--</div>
     </div>
-    <div class="results-breakdown" id="results-breakdown"></div>
+    <div class="results-breakdown" id="results-breakdown" aria-label="Score breakdown by passage"></div>
+    <div class="score-band" aria-label="Score interpretation guide">
+      <h3>&#127919; What Your Score Means</h3>
+      <div class="band-row"><div class="band-dot band-excellent" aria-hidden="true"></div><span><strong>16–18 correct:</strong> Excellent — on track for 128+ (top 15%)</span></div>
+      <div class="band-row"><div class="band-dot band-good" aria-hidden="true"></div><span><strong>13–15 correct:</strong> Good — competitive for most MD programs (125–127)</span></div>
+      <div class="band-row"><div class="band-dot band-developing" aria-hidden="true"></div><span><strong>10–12 correct:</strong> Developing — focus on passage structure and main idea identification</span></div>
+      <div class="band-row"><div class="band-dot band-early" aria-hidden="true"></div><span><strong>Below 10:</strong> Early stage — practice active reading daily before timed sessions</span></div>
+    </div>
     <button class="restart-btn" onclick="location.reload()">Start Over</button>
-  </div>
-</div>
+  </section>
+</main>
 
 <script>
 // ===== PASSAGE DATA =====
@@ -714,63 +858,67 @@ function renderAll() {
     pip.className = 'passage-pip' + (pi === 0 ? ' active' : '');
     pip.textContent = pi + 1;
     pip.id = 'pip-' + pi;
+    pip.setAttribute('aria-label', 'Go to passage ' + (pi + 1) + ': ' + p.title);
+    pip.setAttribute('aria-current', pi === 0 ? 'true' : 'false');
     pip.onclick = () => goToPassage(pi);
     pipContainer.appendChild(pip);
 
     // Section
-    const sec = document.createElement('div');
+    const sec = document.createElement('section');
     sec.className = 'passage-section' + (pi === 0 ? ' active' : '');
     sec.id = 'passage-' + pi;
+    sec.setAttribute('aria-label', 'Passage ' + (pi + 1) + ': ' + p.title);
+    sec.setAttribute('aria-hidden', pi === 0 ? 'false' : 'true');
 
     let questionsHTML = '';
     p.questions.forEach((q, qi) => {
-      const qid = `p${pi}q${qi}`;
+      const qid = 'p' + pi + 'q' + qi;
       let optsHTML = '';
       const letters = ['A','B','C','D'];
       q.options.forEach((opt, oi) => {
-        optsHTML += `<button class="option-btn" data-qid="${qid}" data-idx="${oi}" onclick="selectOption('${qid}', ${oi})"><strong>${letters[oi]}.</strong> ${opt}</button>`;
+        optsHTML += '<button class="option-btn" data-qid="' + qid + '" data-idx="' + oi + '" onclick="selectOption(\'' + qid + '\', ' + oi + ')" aria-label="Option ' + letters[oi] + ': ' + opt.replace(/"/g, '&quot;') + '"><strong>' + letters[oi] + '.</strong> ' + opt + '</button>';
       });
-      questionsHTML += `
-        <div class="question-block">
-          <div class="q-num">Question ${qi + 1} of ${p.questions.length}</div>
-          <div class="q-stem">${q.stem}</div>
-          ${optsHTML}
-          <button class="check-btn" id="check-${qid}" onclick="checkAnswer('${qid}', ${pi}, ${qi})" disabled>Check Answer</button>
-          <div class="feedback-box" id="fb-${qid}"></div>
-        </div>
-      `;
+      questionsHTML += '<div class="question-block" role="group" aria-labelledby="qstem-' + qid + '"><div class="q-num" aria-hidden="true">Question ' + (qi + 1) + ' of ' + p.questions.length + '</div><div class="q-stem" id="qstem-' + qid + '">' + q.stem + '</div><div role="radiogroup" aria-labelledby="qstem-' + qid + '">' + optsHTML + '</div><button class="check-btn" id="check-' + qid + '" onclick="checkAnswer(\'' + qid + '\', ' + pi + ', ' + qi + ')" disabled aria-disabled="true">Check Answer</button><div class="feedback-box" id="fb-' + qid + '" aria-live="polite" aria-atomic="true" role="alert"></div></div>';
     });
 
-    sec.innerHTML = `
-      <div class="passage-header">
-        <div class="passage-num">${String(pi+1).padStart(2,'0')}</div>
-        <div class="passage-meta">
-          <div class="pm-label">${p.topic}</div>
-          <div class="pm-title">${p.title}</div>
-        </div>
-      </div>
-      <div class="passage-block">${p.text}</div>
-      ${questionsHTML}
-      <div class="passage-footer">
-        <button class="nav-arrow" ${pi === 0 ? 'disabled' : ''} onclick="goToPassage(${pi - 1})">&#8592; Previous</button>
-        ${pi < passages.length - 1
-          ? `<button class="nav-arrow" onclick="goToPassage(${pi + 1})">Next &#8594;</button>`
-          : `<button class="nav-arrow" onclick="showResults()" style="background:var(--gold);color:var(--ink);border-color:var(--gold);">Finish &amp; Score</button>`
-        }
-      </div>
-    `;
+    const prevBtn = pi === 0
+      ? '<button class="nav-arrow" disabled aria-disabled="true" aria-label="Previous passage (unavailable)">&#8592; Previous</button>'
+      : '<button class="nav-arrow" onclick="goToPassage(' + (pi - 1) + ')" aria-label="Previous passage">&#8592; Previous</button>';
+    const nextBtn = pi < passages.length - 1
+      ? '<button class="nav-arrow" onclick="goToPassage(' + (pi + 1) + ')" aria-label="Next passage">Next &#8594;</button>'
+      : '<button class="nav-arrow" onclick="showResults()" style="background:var(--gold);color:var(--ink);border-color:var(--gold);" aria-label="Finish and see your score">Finish &amp; Score</button>';
+
+    sec.innerHTML = '<div class="passage-header"><div class="passage-num" aria-hidden="true">' + String(pi+1).padStart(2,'0') + '</div><div class="passage-meta"><div class="pm-label">' + p.topic + '</div><div class="pm-title">' + p.title + '</div></div></div><div class="passage-block" role="article" aria-label="Passage text">' + p.text + '</div>' + questionsHTML + '<div class="passage-footer">' + prevBtn + nextBtn + '</div>';
     container.appendChild(sec);
   });
 }
 
+// ===== TIPS TOGGLE =====
+function toggleTips(btn) {
+  const body = document.getElementById('cars-tips-body');
+  const expanded = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', String(!expanded));
+  body.classList.toggle('open', !expanded);
+}
+
 function goToPassage(idx) {
   if (idx < 0 || idx >= passages.length) return;
-  document.querySelectorAll('.passage-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.passage-pip').forEach(p => p.classList.remove('active'));
-  document.getElementById('passage-' + idx).classList.add('active');
-  document.getElementById('pip-' + idx).classList.add('active');
+  document.querySelectorAll('.passage-section').forEach(s => {
+    s.classList.remove('active');
+    s.setAttribute('aria-hidden', 'true');
+  });
+  document.querySelectorAll('.passage-pip').forEach(p => {
+    p.classList.remove('active');
+    p.setAttribute('aria-current', 'false');
+  });
+  const sec = document.getElementById('passage-' + idx);
+  sec.classList.add('active');
+  sec.setAttribute('aria-hidden', 'false');
+  const pip = document.getElementById('pip-' + idx);
+  pip.classList.add('active');
+  pip.setAttribute('aria-current', 'true');
   currentPassage = idx;
-  document.getElementById('pass-indicator').textContent = `PASSAGE ${idx + 1} / ${passages.length}`;
+  document.getElementById('pass-indicator').textContent = 'PASSAGE ' + (idx + 1) + ' / ' + passages.length;
   window.scrollTo({top: 200, behavior: 'smooth'});
 }
 
@@ -779,7 +927,9 @@ function selectOption(qid, idx) {
   answers[qid] = idx;
   document.querySelectorAll(`[data-qid="${qid}"]`).forEach(b => b.classList.remove('selected'));
   document.querySelector(`[data-qid="${qid}"][data-idx="${idx}"]`).classList.add('selected');
-  document.getElementById('check-' + qid).disabled = false;
+  const checkBtn = document.getElementById('check-' + qid);
+  checkBtn.disabled = false;
+  checkBtn.setAttribute('aria-disabled', 'false');
 }
 
 function checkAnswer(qid, pi, qi) {
@@ -818,9 +968,13 @@ function showResults() {
   const m = Math.floor(elapsed / 60);
   const s = elapsed % 60;
 
-  document.querySelectorAll('.passage-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.passage-section').forEach(s => {
+    s.classList.remove('active');
+    s.setAttribute('aria-hidden', 'true');
+  });
   const rs = document.getElementById('results-screen');
   rs.classList.add('active');
+  rs.setAttribute('aria-hidden', 'false');
   document.getElementById('final-score').textContent = correctCount + ' / 18';
   document.getElementById('final-time').textContent = `Completed in ${m}m ${s < 10 ? '0' : ''}${s}s`;
 
@@ -831,7 +985,7 @@ function showResults() {
     breakdownHTML += `
       <div class="rb-row">
         <span class="rb-pass">P${pi+1}: ${p.title}</span>
-        <span class="rb-score ${sc === total ? 'perfect' : ''}">${sc} / ${total}</span>
+        <span class="rb-score ${sc === total ? 'perfect' : ''}" aria-label="${sc} out of ${total} correct">${sc} / ${total}</span>
       </div>
     `;
   });
@@ -842,25 +996,29 @@ function showResults() {
 
 // ===== GLOBAL TIMER =====
 function toggleGlobalTimer() {
+  const btn = document.getElementById('global-timer-btn');
   if (!timerRunning) {
     timerRunning = true;
-    document.getElementById('global-timer-btn').textContent = 'Pause';
-    document.getElementById('global-timer-btn').classList.add('active');
+    btn.textContent = 'Pause';
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
     timerInterval = setInterval(() => {
       timerSeconds--;
       if (timerSeconds <= 0) {
         clearInterval(timerInterval);
         timerSeconds = 0;
         timerRunning = false;
-        document.getElementById('global-timer-btn').textContent = 'Time!';
+        btn.textContent = 'Time!';
+        btn.setAttribute('aria-pressed', 'false');
       }
       updateGlobalTimer();
     }, 1000);
   } else {
     timerRunning = false;
     clearInterval(timerInterval);
-    document.getElementById('global-timer-btn').textContent = 'Resume';
-    document.getElementById('global-timer-btn').classList.remove('active');
+    btn.textContent = 'Resume';
+    btn.classList.remove('active');
+    btn.setAttribute('aria-pressed', 'false');
   }
 }
 
